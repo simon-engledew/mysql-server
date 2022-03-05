@@ -9,15 +9,6 @@
 #include "../storage/perfschema/pfs_server.h"
 #endif /* WITH_PERFSCHEMA_STORAGE_ENGINE */
 
-std::string format(const Json_dom &d)
-{
-  String buffer;
-  Json_wrapper w(d.clone());
-  w.to_string(&buffer, true, "format");
-
-  return std::string(buffer.ptr(), buffer.length());
-}
-
 int main(int _argc, char **_argv)
 {
   system_charset_info= &my_charset_utf8mb4_bin;
@@ -44,36 +35,21 @@ int main(int _argc, char **_argv)
   THD *stack_thd= m_thd;
 
   m_thd->set_new_thread_id();
-
   m_thd->thread_stack= (char*) &stack_thd;
   m_thd->store_globals();
-  lex_start(m_thd);
-  m_thd->set_current_time();
 
   std::istream_iterator<char> it(std::cin);
   std::istream_iterator<char> end;
   std::string value(it, end);
 
-  const char* json = value.data();
-
-  String doc(json, &my_charset_utf8mb4_bin);
-
-  const char *safep;
-  size_t safe_length = 0;
-
-  const char *parse_err;
-  size_t err_offset;
-
-  char buff[MAX_FIELD_WIDTH];
-
-  String utf8_doc(buff, sizeof(buff), &my_charset_utf8mb4_bin);
-
-  assert(!ensure_utf8mb4(&doc, &utf8_doc, &safep, &safe_length, true));
-
-  Json_dom *dom = Json_dom::parse(safep, safe_length, &parse_err, &err_offset, false);
+  Json_dom *dom = Json_dom::parse(value.data(), value.length(), NULL, NULL, false);
   assert(dom);
 
-  std::cout << format(*dom) << std::endl;
+  String buffer;
+  Json_wrapper w(dom);
+  w.to_string(&buffer, true, "format");
+
+  std::cout << std::string(buffer.ptr(), buffer.length()) << std::endl;
 
   m_thd->cleanup_after_query();
   delete m_thd;
