@@ -56,8 +56,16 @@ SET_SOURCE_FILES_PROPERTIES(${GEN_SOURCES}
 ADD_EXECUTABLE(gen_lex_token gen_lex_token.cc)
 ADD_DEPENDENCIES(gen_lex_token GenServerSource)
 
-MYSQL_ADD_EXECUTABLE(mysqljson mysqljson.cc)
+# MYSQL_ADD_EXECUTABLE(mysqljson mysqljson.cc)
+# TARGET_LINK_LIBRARIES(mysqljson sql binlog rpl master slave)
+
+# PROJECT(libmysqljson VERSION 1.0.0 DESCRIPTION "MySQL JSON")
+
+ADD_LIBRARY(mysqljson SHARED mysqljson.cc)
 TARGET_LINK_LIBRARIES(mysqljson sql binlog rpl master slave)
+
+# SET_TARGET_PROPERTIES(libmysqljson PROPERTIES VERSION ${PROJECT_VERSION})
+# SET_TARGET_PROPERTIES(libmysqljson PROPERTIES SOVERSION 1)
 
 ADD_CUSTOM_COMMAND(
   OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/lex_token.h
